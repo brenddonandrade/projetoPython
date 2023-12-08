@@ -19,7 +19,7 @@ class Vector2(object):
         return Vector2(self.x * scalar, self.y * scalar)
 
     def __div__(self, scalar):
-        if scalar !=:
+        if scalar != 0:
             return Vector2(self.x / float(scalar), self.y/ float(scalar))
         return None
 
