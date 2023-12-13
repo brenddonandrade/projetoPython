@@ -19,9 +19,13 @@ class Entity(object):
         self.target = node
         self.visible = True
         self.disablePortal = False
+        self.goal = None
+        self.directionMethod = self.randomDirection
+
 
     def setPosition(self):
         self.position = self.node.position.copy()
+
           
     def validDirection(self, direction):
         if direction is not STOP:
@@ -29,10 +33,12 @@ class Entity(object):
                 return True
         return False
 
+
     def getNewTarget(self, direction):
         if self.validDirection(direction):
             return self.node.neighbors[direction]
         return self.node
+
 
     def overshotTarget(self):
         if self.target is not None:
@@ -43,33 +49,38 @@ class Entity(object):
             return node2Self >= node2Target
         return False
 
+
     def reverseDirection(self):
         self.direction *= -1
         temp = self.node
         self.node = self.target
         self.target = temp
         
+
     def oppositeDirection(self, direction):
         if direction is not STOP:
             if direction == self.direction * -1:
                 return True
         return False
 
+
     def setSpeed(self, speed):
         self.speed = speed * TILEWIDTH / 16
+
 
     def render(self, screen):
         if self.visible:
             p = self.position.asInt()
             pygame.draw.circle(screen, self.color, p, self.radius)
     
+
     def update(self, dt):
         self.position += self.directions[self.direction]*self.speed*dt
 
         if self.overshotTarget():
             self.node = self.target
             directions = self.validDirections()
-            direction = self.randomDirection(directions)
+            direction = self.directionMethod(directions)
             if not self.disablePortal:
                 if self.node.neighbors[PORTAL] is not None:
                     self.node = self.node.neighbors[PORTAL]
@@ -81,6 +92,7 @@ class Entity(object):
 
             self.setPosition()
         
+
     def validDirections(self):
         directions = []
         for key in [UP, DOWN, LEFT, RIGHT]:
@@ -91,5 +103,14 @@ class Entity(object):
             directions.append(self.direction * -1)
         return directions
 
+
     def randomDirection(self, directions):
         return directions[randint(0, len(directions)-1)]
+
+    def goalDirection(self, directions):
+        distances = []
+        for direction in directions:
+            vec = self.node.position  + self.directions[direction]*TILEWIDTH - self.goal
+            distances.append(vec.magnitudeSquared())
+        index = distances.index(min(distances))
+        return directions[index]
